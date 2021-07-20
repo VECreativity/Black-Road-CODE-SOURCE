@@ -50,7 +50,6 @@ int Login();
 
 inline int __ReadLocalFile_UserList();
 inline int __WriteLocalFile_UserList(char* Message);
-
-void Reset();
+inline void __Reset();
 
 #endif

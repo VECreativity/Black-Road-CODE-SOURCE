@@ -1,5 +1,4 @@
 #include "Declaration.h"
-#include "Other.Platform.H.vec.Description.h"
 #include "Platform.Rmdust.Error.h"
 
 #include <conio.h>
