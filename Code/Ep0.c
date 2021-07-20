@@ -1,6 +1,5 @@
 #include "Declaration.h"
 #include "Other.Platform.H.vec.Description.h"
-#include "Report.h"
 
 # include <stdio.h>
 # include <conio.h>
@@ -21,14 +20,14 @@ int ptr(char fileNameAddress[]) {
   FILE *ptrAddress = NULL;
   fopen_s(&ptrAddress,fileNameAddress,"r");
   if (ptrAddress == NULL) {
-    return REPORT_ERROR_USER_FILE_OPEN;
+    return 0;
   }
 
   int width = 0;
   while (!feof(ptrAddress)) {
     if (width == 30) {
       fclose(ptrAddress);
-      return REPORT_ACTIVE_FUNCTION_END;
+      return 0;
     }
     for (int count = 0; count < 60;count ++) {
       worldArr[width][count] = (char)fgetc(ptrAddress);
@@ -37,7 +36,7 @@ int ptr(char fileNameAddress[]) {
     width++;
   }
   fclose(ptrAddress);
-  return REPORT_ACTIVE_FUNCTION_END;
+  return 0;
 }
 
 //  struct direction : old.x & old.y & neww.x & neww.y
@@ -70,14 +69,14 @@ void diectionPrintf(void) {
 
 int directionControlCenter(int a, int b) {
   if (a == 0 && b == 0) {
-    return REPORT_ACTIVE_FALSE;
+    return -1;
   }
   if (neww.y + 1 >= (int)sizeof(worldArr) || worldArr[neww.y + a][neww.x + b] != ' ') {
-    return REPORT_ACTIVE_FALSE;
+    return -1;
   }
   neww.y += a;
   neww.x += b;
-  return REPORT_ACTIVE_FUNCTION_END;
+  return 0;
 }
 
 int operatingCenter(void) {
@@ -101,9 +100,9 @@ int operatingCenter(void) {
       control = 3;
       break;
     //  Ability
-    case '-':set.sys = 0;return REPORT_ACTIVE_FALSE;break;
-    case '=':set.sys = -1;return REPORT_ACTIVE_FALSE;break;
-    default:return REPORT_ACTIVE_FUNCTION_END;break;
+    case '-':set.sys = 0;return -1;break;
+    case '=':set.sys = -1;return -1;break;
+    default:return 0;break;
   }
   int count = 0;
 
@@ -125,7 +124,7 @@ int operatingCenter(void) {
     diectionPrintf();
   } while (directionControlCenter(1, 0));
 
-  return REPORT_ACTIVE_FUNCTION_END;
+  return 0;
 }
 
 void fun() {
@@ -151,16 +150,16 @@ int manualAttack() {
   if (worldArr[neww.y][neww.x - 1] == '!' || worldArr[neww.y][neww.x + 1] == '!') {
     worldArr[neww.y][neww.x - 1] = ' ';
     worldArr[neww.y][neww.x + 1] = ' ';
-    return REPORT_ACTIVE_FALSE;
+    return -1;
   }
-  return REPORT_ACTIVE_FUNCTION_END;
+  return 0;
 }
 int manualAttackSec() {
   if (worldArr[neww.y + 1][neww.x] == '!') {
     neww.y += 1;
-    return REPORT_ACTIVE_FALSE;
+    return -1;
   }
-  return REPORT_ACTIVE_FUNCTION_END;
+  return 0;
 }
 
 int game(char numID[2]) {
@@ -176,7 +175,7 @@ int game(char numID[2]) {
   
   directionValueInitialization(0,0);
   diectionPrintf();
-  sendValueToDataFile(numID);
+  //sendValueToDataFile(numID);
 
   while (operatingCenter()) {
   }
@@ -186,5 +185,5 @@ int game(char numID[2]) {
     game(numID);
   }
 
-  return REPORT_ACTIVE_FUNCTION_END;
+  return 0;
 }

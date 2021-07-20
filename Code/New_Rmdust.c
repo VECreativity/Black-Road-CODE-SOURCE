@@ -175,7 +175,7 @@ char* Rmdust_System_Log_GetMessage() {
 void Rmdust_System_Console_Graphic_Animation_BasicMessage(char* Message) {
   size_t MessageLength = strlen(Message);
 
-  for (size_t Index;Index < MessageLength;Index += 1) {
+  for (size_t Index = 0;Index < MessageLength;Index += 1) {
     Sleep(Graphic_Animation_Transition_Time);
     printf("%c", *(Message + Index));
   }
@@ -348,6 +348,21 @@ int Rmdust_System_IO_Folder_Create(char* FolderName) {
 
   return _mkdir(FolderName);
 }
+
+int Rmdust_System_IO_File_Create(char* FileName) {
+  FILE* Path = NULL;
+  fopen_s(&Path,FileName,"a+");
+
+  if (Path == NULL) {
+    return 0;
+  }
+
+  fclose(Path);
+
+  return 1;
+}
+
+
 
 
 

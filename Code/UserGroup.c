@@ -1,210 +1,194 @@
-#include <direct.h>
 #include <stdio.h>
+#include <string.h>
 #include <windows.h>
-#include <conio.h>
 #include <stdbool.h>
 
 #include "Declaration.h"
-#include "Other.Platform.H.vec.Description.h"
-#include "Report.h"
+#include "Platform.Rmdust.Error.h"
 
-struct Contralet {
-  char userAddress[32], localUserAddressFolder[64], localUserAddressData_DataFile[64],
-      localuserAddressData_AchievementFile[64];
-};
-struct Contralet userAddress;
+static struct _User {
+  struct _SystemUser {
 
-/*
- *  Function : userLogin()
- *  Effect : Use placed address of user, Find new "userAddress.userAddress" , or Delete.
- *  Update : FALSE - 12-24-2020
- */
-int userLogin(void) {
-  system("cls");
-  systemAddressProceed(0);
+    char* Name;
+    char* NamePath;
 
-  FILE *userAddressOpen = NULL;
-  fopen_s(&userAddressOpen, "./resource/data/save/user.txt", "r");
-  if (userAddressOpen == NULL) {
-    return REPORT_ERROR_USER_FILE_OPEN;
+    bool Online;
+    bool Register;
+
+    //char* AllUserList[128];
+    char AllUserList[128][128];
+    unsigned short int AllUserNumber;
+  } User;
+
+  struct _SystemLocal {
+
+    struct _SystemLocalFile {
+      bool Active;
+
+      char* MainPath;
+      char* UserListPath;
+
+
+
+    } File;
+
+
+  } Local;
+
+} System;
+
+void SetSystem_User_VarNamePath(char* Message) {
+  System.User.NamePath = Message;
+}
+char* GetSystem_User_VarNamePath() {
+  return System.User.NamePath;
+}
+
+void SetSystem_User_VarName(char* Message) {
+  System.User.Name = Message;
+}
+char* GetSystem_User_VarName() {
+  return System.User.Name;
+}
+
+void SetSystem_Local_File_VarUserListPath(char* Message) {
+  System.Local.File.UserListPath = Message;
+}
+char* GetSystem_Local_File_VarUserListPath() {
+  return System.Local.File.UserListPath;
+}
+
+void SetSystem_Local_File_VarMainPath(char* Message) {
+  System.Local.File.MainPath = Message;
+}
+char* GetSystem_Local_File_VarMainPath() {
+  return System.Local.File.MainPath;
+}
+
+void SetSystem_User_VarAllUserNumber(unsigned short int Number) {
+  System.User.AllUserNumber = Number;
+}
+unsigned short int GetSystem_User_VarAllUserNumber() {
+  return System.User.AllUserNumber;
+}
+
+char* GetSystem_User_AllUserList_ToString(unsigned short int Index) {
+  return System.User.AllUserList[Index];
+}
+
+void SetSystem_User_Register(bool Active) {
+  System.User.Register = Active;
+}
+bool GetSystem_User_Register() {
+  return System.User.Register;
+}
+
+
+int Register() {
+  // Write to local Userlist.txt
+  __WriteLocalFile_UserList(GetSystem_User_VarName());
+  return 1;
+}
+
+int Login() {
+  System.User.Online = TRUE;
+
+  return 1;
+}
+
+int aaa() {
+  System.User.Online = FALSE;
+  __Reset();
+
+  if (!__ReadLocalFile_UserList()) {
+    return 0;
   }
-  
-  char userName[32][9];
-  int userLocalSize = 0;
-  while(!feof(userAddressOpen)){
-    for (int count = 0; count < 8;count ++) {
-      userName[userLocalSize][count] = (char)fgetc(userAddressOpen);
-    }
-    userName[userLocalSize][8] = '\0';
-    userLocalSize ++;
-  }
-  int userNameWidth = userLocalSize - 1;
-  fclose(userAddressOpen);
 
-  if(userLocalSize == 1){
-    _Console_Write_Frame("User null\n",'-',1);
-  } else {
-    _Console_Write_WriteSleep(200,"User List\n");
-    for (int stTemp = 0; stTemp < userNameWidth;stTemp++) {
-      _Console_Write_Frame(userName[stTemp],'-',1);
-    }
-  } 
+  char User[128 + 1] = {0};
+  scanf_s("%s",&User,128);
 
-  _Console_Write_Frame("0:Delete  0~8:Name Value" ,'=',1);
-  _Console_Write_WriteSleep(200,"Put your user name:\n");
-
-  reProcess:;
-  scanf_s("%s", &userAddress.userAddress, 9);
-
-  if (userAddress.userAddress[0] == '0') {
-    _Console_Write_WriteSleep(200,"Delete your user name:");
-    scanf_s("%s", &userAddress.userAddress, 9);
-
-    if (userNameDefend(userAddress.userAddress) == FALSE) {
-      goto reProcess;
-    }
-
-    userAddrssProcess(userAddress.userAddress);
-    remove(userAddress.localUserAddressData_DataFile);
-    remove(userAddress.localuserAddressData_AchievementFile);
-    if (_rmdir(userAddress.localUserAddressFolder) != FALSE) {
-      return REPORT_ERROR_USER_FILE_DELETE;
-    }
-    remove("./resource/data/save/user.txt");
-
-    for (int count = 0;count < userNameWidth;count ++) {
-      if (strcmp(userAddress.userAddress,userName[count]) != FALSE) {
-        _IO_File_Write("./resource/data/save/user.txt", "a+", userName[count]);
-      }
-    }
-    userLogin();
-    return REPORT_ACTIVE_FUNCTION_END;
-  }
-
-  if (userNameDefend(userAddress.userAddress) == FALSE){
-    goto reProcess; 
-  }
-  bool activity = FALSE;
-  for (int count = 0; count < userNameWidth;count++) {
-    if (userNameSakeDefend(userAddress.userAddress,userName[count]) == FALSE) {
-      activity = TRUE;
+  // Verify : User put in the user-Name
+  for(unsigned short int Index = GetSystem_User_VarAllUserNumber();Index > 0;Index -= 1) {
+    if (0 == strcmp(User,GetSystem_User_AllUserList_ToString(Index))) {
+      SetSystem_User_Register(TRUE);
       break;
     }
-  }
-  if (activity != TRUE) {
-    _IO_File_Write("./resource/data/save/user.txt", "a+", userAddress.userAddress);
-  }
-  userAddrssProcess(userAddress.userAddress);
-  systemAddressProceed(userAddress.userAddress);
 
-  _Console_Write_WriteSleep(200, "Opened user name:"); 
-  _Console_Write_Frame(userAddress.userAddress,'-',1);
- 
-  return REPORT_ACTIVE_FUNCTION_END;
+    SetSystem_User_Register(FALSE);
+  }
+  SetSystem_User_VarName(User);
+
+  if (!GetSystem_User_Register()) {
+    Register(); 
+  }
+  Login();
+
+
+  __Reset();
+
+  return 1;
 }
 
-/*
- *  user name sake :123456789(1~9) and 8bit
- */
-int userNameDefend(char id[]) {
-  if (id[7] == 0 || id[8] != 0) {
-    puts("8bit number");
-    return REPORT_ACTIVE_FALSE;
+inline int __ReadLocalFile_UserList() {
+  FILE* Path = NULL;
+  fopen_s(&Path,GetSystem_Local_File_VarUserListPath(),"r+");
+
+  if (Path == NULL) {
+    return 0;
   }
-  for (int count = 0; count < 8; count++) {
-    if (id[count] < 48 || id[count] > 57) {
-      puts("8bit number 0~9");
-      return REPORT_ACTIVE_FALSE;
-    }
+
+  unsigned short int Index = 0;
+  while(!feof(Path)) {
+    fgets(System.User.AllUserList[Index],128,Path);
+    Index += 1;
   }
-  return REPORT_ACTIVE_FUNCTION_END;
-} 
-int userNameSakeDefend(char id[] , char userId[]) {
-  if (strcmp(id,userId) == 0) {
-    return REPORT_ACTIVE_FALSE;
-  }
-  return REPORT_ACTIVE_FUNCTION_END;
-}
-/*
-*  Link both array
-*  DON'T TOUCH !!!
-*
-*  List:
-*    1 ./resource/data/save/id
-*    2 ./resource/data/save/id/data
-*    3 ./resource/data/save/id/achievement
-*/
-void userAddrssProcess(char id[]) {
-  _Data_Convert_ArrayLinkBoth("./resource/data/save/",id,userAddress.localUserAddressFolder);
-  _Data_Convert_ArrayLinkBoth(userAddress.localUserAddressFolder,"/data",userAddress.localUserAddressData_DataFile);
-  _Data_Convert_ArrayLinkBoth(userAddress.localUserAddressFolder,"/achievement",userAddress.localuserAddressData_AchievementFile);
+  
+  fclose(Path);
+  
+  System.User.AllUserList[Index][0] = '\0';
+
+  SetSystem_User_VarAllUserNumber(Index - 1);
+
+  return 1;
 }
 
-/*
-*  Sure local file/folder life.
-*  DON'T TOUCH !!!
-*
-*  List:
-*    < Folder >
-*    1 ./resource
-*    2 ./resource/data
-*    3 ./resource/data/save
-*    4 ./resource/core
-*    5 ./resource/core/ptr
-*    *6 ./resource/data/save/id
-*    < File >
-8    1. ./resource/data/save/user.txt
-*    *2 ./resource/data/save/id/data.txt
-*    *3 ./resource/data/save/id/achievement.txt
-*    *4 ./resource/core/ptr/ptr.txt
-*/
-int systemAddressProceed(char id[]) {
-  _IO_Folder_Create("./resource");
-  _IO_Folder_Create("./resource/data");
-  _IO_Folder_Create("./resource/data/save");
-  _IO_Folder_Create("./resource/core");
-  _IO_Folder_Create("./resource/core/ptr");
-  _IO_File_Create("./resource/data/save/user.txt", "a+");
+inline int __WriteLocalFile_UserList(char* Message) {
+  FILE* Path = NULL;
+  fopen_s(&Path,GetSystem_Local_File_VarUserListPath(),"a+");
 
-  if (id == 0) {
-    return REPORT_ACTIVE_FUNCTION_END;
+  if (Path == NULL) {
+    return 0;
   }
-  _IO_Folder_Create(userAddress.localUserAddressFolder);
-  _IO_File_Create(userAddress.localUserAddressData_DataFile, "a+");
-  _IO_File_Create(userAddress.localuserAddressData_AchievementFile, "a+");
 
-  return REPORT_ACTIVE_FUNCTION_END;
-}
-//  Write local "data".
-void sendValueToDataFile(char message[]) {
-  _IO_File_Write(userAddress.localUserAddressData_DataFile, "w+", message);
+  fprintf(Path,"%s\n",Message);
+
+  fclose(Path);
+
+  return 1;
 }
 
-/*
- *  Function : getProceed()
- *  Effect : Read local "data" file.
- *  Update : TRUE
- */
-int getProceed(void) {
-  char userData[3];
+void __Reset() {
+  // Var
+  SetSystem_Local_File_VarMainPath("C:\\Users\\Public\\Documents\\RMDUST\\ShadowOfWorld\\");
+  SetSystem_Local_File_VarUserListPath("C:\\Users\\Public\\Documents\\RMDUST\\ShadowOfWorld\\Save\\List.txt");
 
-  //  Read local "data" file
-  FILE *userDataRead = NULL;
-  fopen_s(&userDataRead, userAddress.localUserAddressData_DataFile, "r");
-  if (userDataRead == NULL) {
-    return REPORT_ERROR_USER_FILE_OPEN;
+  if (System.User.Online) {
+    // Alink both to name.
+    char Path[256 + 1] = {0};
+    strcat_s(Path,256,"C:\\Users\\Public\\Documents\\RMDUST\\ShadowOfWorld\\Save\\");
+    strcat_s(Path,256,GetSystem_User_VarName());
+    Rmdust_System_IO_Folder_Create(Path);
+
+    strcat_s(Path,256,"\\Inf.txt");
+    Rmdust_System_IO_File_Create(Path);
   }
-  if (!feof(userDataRead)) {
-    _IO_File_Write(userAddress.localUserAddressData_DataFile, "w+", "0000");
-  }
-  fgets(userData, 3, userDataRead);
-  fclose(userDataRead);
 
-  game(userData);
-
-
-  return REPORT_ACTIVE_FUNCTION_END;
+  // Create Files
+  Rmdust_System_IO_Folder_Create(GetSystem_Local_File_VarMainPath());
+  Rmdust_System_IO_Folder_Create("C:\\Users\\Public\\Documents\\RMDUST\\ShadowOfWorld\\Save\\");
+  Rmdust_System_IO_File_Create(GetSystem_Local_File_VarUserListPath());
 }
+
 
 
 

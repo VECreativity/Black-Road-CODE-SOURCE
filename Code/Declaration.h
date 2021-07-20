@@ -22,26 +22,35 @@ int Menu(int Position, char MenuList[][16], bool Reset);
 inline int __MenuOperate(int mode, int num, int Min, int Max);
 inline int __MenuList(int mode, int num);
 
-inline void SetMenuListMax(int Number);
-inline int GetMenuListMax();
+inline void SetMenuListMax(unsigned short int Number);
+inline unsigned short int GetMenuListMax();
+inline void SetMenuListMin(unsigned short int Number);
+inline unsigned short int GetMenuListMin();
 
-
-int list(int num, int mode);
-int getMenu(int num);
-int getGamePassage(int num);
 void getHelp(void);
-void pulseOn(void);
 
 // UserGroup.c
-void userAddrssProcess(char id[]);
-int systemAddressProceed(char id[]);
-int userLogin(void);
-int userNameDefend(char id[]);
-int userNameSakeDefend(char id[], char userId[]);
-void sendValueToDataFile(char message[]);
-int getProceed(void);
+void SetSystem_User_VarNamePath(char* Message);
+char* GetSystem_User_VarNamePath();
+void SetSystem_User_VarName(char* Message);
+char* GetSystem_User_VarName();
+void SetSystem_Local_File_VarUserListPath(char* Message);
+char* GetSystem_Local_File_VarUserListPath();
+void SetSystem_Local_File_VarMainPath(char* Message);
+char* GetSystem_Local_File_VarMainPath();
+void SetSystem_User_VarAllUserNumber(unsigned short int Number);
+unsigned short int GetSystem_User_VarAllUserNumber();
+char* GetSystem_User_AllUserList_ToString(unsigned short int Index);
+void SetSystem_User_Register(bool Active);
+bool GetSystem_User_Register();
 
-//int eggControlCenter();
-//int newYear();
+int aaa();
+int Register();
+int Login();
+
+inline int __ReadLocalFile_UserList();
+inline int __WriteLocalFile_UserList(char* Message);
+
+void Reset();
 
 #endif

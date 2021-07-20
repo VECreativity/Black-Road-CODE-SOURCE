@@ -34,6 +34,7 @@ inline void static __SetPos(short int x, short int y);
 int Rmdust_System_IO_Error_Log_Reset();
 int Rmdust_System_IO_Error_Log_Write();
 int Rmdust_System_IO_Folder_Create(char* FolderName);
+int Rmdust_System_IO_File_Create(char* FileName);
 #endif
 
 
