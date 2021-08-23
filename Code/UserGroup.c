@@ -4,14 +4,15 @@
 #include <windows.h>
 #include <stdbool.h>
 #include <malloc.h>
+#include <Lmcons.h>
 
 #include "Declaration.h"
 #include "Platform.Rmdust.Error.h"
 
-static struct _User {
+static struct _System {
   struct _SystemUser {
     char* Name;
-    char* NamePath;
+    char WindowsUserPath[256 + 1];
     bool Online;
     bool Register;
 
@@ -26,207 +27,327 @@ static struct _User {
   struct _SystemLocal {
     struct _SystemLocalFile {
       bool Active;
-      char* MainPath;
-      char* UserListPath;
     } File;
   } Local;
 
 } System;
 
 typedef struct _SystemUserList _SystemUserListNode, *UserListLinkList;
-UserListLinkList UserListHead;
+static UserListLinkList UserListHead;
 
-int Register() {
-  // Write to local Userlist.txt
-  __WriteLocalFile_UserList(GetSystem_User_VarName());
-  return 1;
-}
 
-int Login() {
-  System.User.Online = TRUE;
-
-  return 1;
-}
 
 int aaa() {
 
   // Init User's Online Activity.
   System.User.Online = FALSE;
+  System.User.Register = FALSE;
 
-  // Init Var Value and Init Local File.
-  __Reset();
+  // Get Windows Local User Path.
+  // __ReadLocalFile_UserList and _WriteLocalFile_UserList Need it.
+  // InitLocalPath Need it.
+  __LinkUserPath();
+
+  // Init Local File.
+  __InitLocalPath();
+
 
   // Init Var Value and Size , This is Link List.
   UserListHead = (UserListLinkList) malloc(sizeof(_SystemUserListNode));
-  UserListHead -> Next = NULL;
 
+  if (!UserListHead) {
+    free(UserListHead);
+    return 0;
+  }
+  UserListHead -> Next = NULL;
 
   // Read Local File ...\\Save\\List.txt
   if (!__ReadLocalFile_UserList()) {
     return 0;
   }
 
-
   char User[128 + 1] = {0};
-  scanf_s("%s",&User,128);
-  UserListLinkList Node = UserListHead -> Next ;
-  // Verify : User put in the user-Name
-  for(unsigned short int Index = GetSystem_User_VarAllUserNumber();Index > 0;Index -= 1) {
-    if (Node == NULL) {
-      break;
-    }
-    
-    if (0 == strcmp(Node->Name,User)) {
-      SetSystem_User_Register(TRUE);
-      break;
-    }
+  Set_SystemUserName(gets_s(User,128));
 
-    printf("%s\n",Node->Name);
-
-    Node = Node->Next;
-
-    SetSystem_User_Register(FALSE);
+  // Verify "User" value is "Local File"'s One ?
+  if (!__IsLocalFileUser()) {
+    Set_SystemUserRegister(FALSE);
+  } else {
+    Set_SystemUserRegister(TRUE);
   }
-  SetSystem_User_VarName(User);
 
-
-  if (!GetSystem_User_Register()) {
-    Register(); 
+  // If User is not lifeing.
+  if (!Get_SystemUserRegister()) {
+    // Create New Player.
+    __Register(); 
   }
-  Login();
+
+  __Login();
 
 
-  __Reset();
+  __InitLocalPath();
 
   return 1;
 }
 
-inline int __ReadLocalFile_UserList() {
 
-  UserListLinkList Node = UserListHead , rear = UserListHead;  
+inline static int __Register() {
+  // Write to local Userlist.txt
+  __WriteLocalFile_UserList(Get_SystemUserName());
+  return 1;
+}
 
-  FILE* Path = NULL;
-  fopen_s(&Path,GetSystem_Local_File_VarUserListPath(),"r+");
-  if (Path == NULL) {
+inline static int __Login() {
+  System.User.Online = TRUE;
+
+  return 1;
+}
+
+inline static int __ReadLocalFile_UserList() {
+
+  char Path[256 + 1] = {0};
+  strcat_s(Path,256,Get_SystemUserWindowsUserPath());
+  strcat_s(Path,256,"\\Documents\\Rmdust\\ShadowOfWorld\\Save\\List.txt");
+
+  FILE* LocalPath = NULL;
+  fopen_s(&LocalPath,Path,"r+");
+  if (LocalPath == NULL) {
     return 0;
   }
 
+  UserListLinkList Node = UserListHead , rear = UserListHead; 
+
   unsigned short int Index = 0;
   char temp[128 + 1] = {0}; 
-  while(!feof(Path)) {
-    fgets(temp,128,Path);
+  while(!feof(LocalPath)) {
+    fgets(temp,128,LocalPath);
+
+    if (strlen(temp) < 2) {
+      break;
+    }
 
     // Kill '\n'
     temp[strlen(temp) - 1] = '\0';
 
-    Node = (UserListLinkList) malloc(sizeof(_SystemUserListNode));
-    strcpy_s(Node->Name,128,temp);
 
-    //rear->Next = Node->Next;
-    //Node->Next = rear;
+    Node = (UserListLinkList) malloc(sizeof(_SystemUserListNode));
+
+    if (!Node) {
+      free(Node);
+      return 0;
+    }
+
+    strcpy_s(Node->Name,128,temp);
 
 	  rear -> Next = Node;
 	  rear = Node;
 	  Node = Node -> Next;
+    //__AddStringToLinkList(temp);
 
     Index += 1;
   }
-  rear->Next = NULL;
+  rear->Next=NULL;
+
+
+
+  fclose(LocalPath);
   
-  fclose(Path);
-  
-  SetSystem_User_VarAllUserNumber(Index - 1);
+  Set_SystemUserAllUserNumber(Index - 1);
 
   return 1;
 }
 
-inline int __WriteLocalFile_UserList(char* Message) {
-  FILE* Path = NULL;
-  fopen_s(&Path,GetSystem_Local_File_VarUserListPath(),"a+");
+inline static bool __IsLocalFileUser() {
+  UserListLinkList Node = UserListHead -> Next ;
 
-  if (Path == NULL) {
+  for(unsigned short int Index = Get_SystemUserAllUserNumber();Index > 0;Index -= 1) {
+    if (Node == NULL) {
+      return FALSE;
+    }
+    
+    if (0 == strcmp(Node->Name,Get_SystemUserName())) {
+      return TRUE;
+    }
+
+    Node = Node->Next;
+  }
+
+  return FALSE;
+}
+
+// No use.
+inline static int __AddStringToLinkList(char* Message) {
+  UserListLinkList Node = UserListHead , rear = UserListHead; 
+
+  Node = (UserListLinkList) malloc(sizeof(_SystemUserListNode));
+
+  if (!Node) {
+    free(Node);
     return 0;
   }
 
-  fprintf(Path,"%s\n",Message);
+  strcpy_s(Node->Name,128,Message);
 
-  fclose(Path);
+	rear -> Next = Node;
+	rear = Node;
+	Node = Node -> Next;
 
   return 1;
 }
 
-inline void __Reset() {
-  // Var
-  SetSystem_Local_File_VarMainPath("C:\\Users\\Public\\Documents\\RMDUST\\ShadowOfWorld\\");
-  SetSystem_Local_File_VarUserListPath("C:\\Users\\Public\\Documents\\RMDUST\\ShadowOfWorld\\Save\\List.txt");
+inline static int __WriteLocalFile_UserList(char* Message) {
+  FILE* LocalPath = NULL;
 
-  if (System.User.Online) {
-    // Alink both to name.
-    char Path[256 + 1] = {0};
+  char Path[256 + 1] = {0};
+  strcat_s(Path,256,Get_SystemUserWindowsUserPath());
+  strcat_s(Path,256,"\\Documents\\Rmdust\\ShadowOfWorld\\Save\\List.txt");
 
-    // ...\\Save\\UserName
-    strcat_s(Path,256,"C:\\Users\\Public\\Documents\\RMDUST\\ShadowOfWorld\\Save\\");
-    strcat_s(Path,256,GetSystem_User_VarName());
-    Rmdust_System_IO_Folder_Create(Path);
+  fopen_s(&LocalPath,Path,"a+");
 
-    // ...\\Save\\UserName\\Inf.txt
-    strcat_s(Path,256,"\\Inf.txt");
-    Rmdust_System_IO_File_Create(Path);
+  if (LocalPath == NULL) {
+    return 0;
   }
 
+  fprintf(LocalPath,"%s\n",Message);
+
+  fclose(LocalPath);
+
+  return 1;
+}
+
+inline static int __InitLocalPath() {
+
+  char WindowsUserPath[256 + 1] = {0};
+  strcat_s(WindowsUserPath,256,Get_SystemUserWindowsUserPath());
+  const char* _Path = Get_SystemUserWindowsUserPath();
+
+  // Create profiles for New player
+  if (System.User.Online) {
+    // C:\\User\\WindowsUserName\\Documents\\Rmdust\\ShaofWorld\\Save\\UserName
+    strcat_s(WindowsUserPath,256,"\\Documents\\Rmdust\\ShadowOfWorld\\Save\\");
+    strcat_s(WindowsUserPath,256,Get_SystemUserName());
+    Rmdust_System_IO_Folder_Create(WindowsUserPath);
+
+    // C:\\User\\WindowsUserName\\Documents\\Save\\UserName\\Inf.txt
+    strcat_s(WindowsUserPath,256,"\\Inf.txt");
+    Rmdust_System_IO_File_Create(WindowsUserPath);
+
+    // Recovery.
+    strcpy_s(WindowsUserPath,256,_Path);
+
+    return 1;
+  }
+
+  strcat_s(WindowsUserPath,256,"\\Documents\\Rmdust\\ShadowOfWorld\\Save\\List.txt");
+  Rmdust_System_IO_File_Create(WindowsUserPath);
+
+  // Recovery.
+  strcpy_s(WindowsUserPath,256,_Path);
+
   // Create Files
-  Rmdust_System_IO_Folder_Create(GetSystem_Local_File_VarMainPath());
-  Rmdust_System_IO_Folder_Create("C:\\Users\\Public\\Documents\\RMDUST\\ShadowOfWorld\\Save\\");
-  Rmdust_System_IO_File_Create(GetSystem_Local_File_VarUserListPath());
+  FILE* LocalPath = NULL;
+  fopen_s(&LocalPath,"./FileInfo.txt","r");
+
+  if (LocalPath == NULL) {
+    return 0;
+  }
+
+
+  char LocalMessage[256] = {0};
+  while(!feof(LocalPath)){
+    // 1. Use var WindowsUserPath's value to Create Folder.
+    fgets(LocalMessage,128,LocalPath);
+
+    // 2.1 First sysbol '*' mean It is description.
+    if (LocalMessage[0] == '*') {
+      continue;
+    }
+
+    // 2.2 First sysbol '\' mean Is is Past.
+    if (LocalMessage[0] == '+') {
+      break;
+    }
+
+    // 3. Yes, It is Past but we should Kill End sysbol '\n'.
+    if (strlen(LocalMessage) > 1) {
+      LocalMessage[strlen(LocalMessage) - 1] = '\0';
+    }
+
+    // 4. Link WindowUserPath and Path from FileInfo.txt.
+    // C:\\Users\\WindowsUserName\\Decuments\\...
+    strcat_s(WindowsUserPath,256,LocalMessage);
+
+    // 5. Create Folder.
+    Rmdust_System_IO_Folder_Create(WindowsUserPath);
+
+    puts(WindowsUserPath);
+
+    // 6. Recovery var WindowsUserPath's value from _Path.
+    strcpy_s(WindowsUserPath,256,_Path);
+  }
+  strcpy_s(WindowsUserPath,256,_Path);
+
+
+  fclose(LocalPath);
+
+  return 1;
+}
+
+inline static char* __GetUserName() {
+  
+  
+  return "Bre 97";
+}
+
+inline static void __LinkUserPath() {
+  char Path[256 + 1] = {0};
+
+  strcat_s(Path,256,"C:\\Users\\");
+  strcat_s(Path,256,__GetUserName());
+
+  strcpy_s(System.User.WindowsUserPath,256,Path);
 }
 
 
 
+///////////////////////////////////////////////////SetSystem_User_VarName///////////////////
 
 
 
-
-
-void SetSystem_User_VarNamePath(char* Message) {
-  System.User.NamePath = Message;
+void Set_SystemUserWindowsUserPath(char* Message) {
+  strcpy_s(System.User.WindowsUserPath,128,Message);
 }
-char* GetSystem_User_VarNamePath() {
-  return System.User.NamePath;
+char* Get_SystemUserWindowsUserPath() {
+  return System.User.WindowsUserPath;
 }
 
-void SetSystem_User_VarName(char* Message) {
+void Set_SystemUserName(char* Message) {
   System.User.Name = Message;
 }
-char* GetSystem_User_VarName() {
+char* Get_SystemUserName() {
   return System.User.Name;
 }
 
-void SetSystem_Local_File_VarUserListPath(char* Message) {
-  System.Local.File.UserListPath = Message;
-}
-char* GetSystem_Local_File_VarUserListPath() {
-  return System.Local.File.UserListPath;
-}
-
-void SetSystem_Local_File_VarMainPath(char* Message) {
-  System.Local.File.MainPath = Message;
-}
-char* GetSystem_Local_File_VarMainPath() {
-  return System.Local.File.MainPath;
-}
-
-void SetSystem_User_VarAllUserNumber(unsigned short int Number) {
+void Set_SystemUserAllUserNumber(unsigned short int Number) {
   System.User.AllUserNumber = Number;
 }
-unsigned short int GetSystem_User_VarAllUserNumber() {
+unsigned short int Get_SystemUserAllUserNumber() {
   return System.User.AllUserNumber;
 }
 
 
 
-void SetSystem_User_Register(bool Active) {
+void Set_SystemUserRegister(bool Active) {
   System.User.Register = Active;
 }
-bool GetSystem_User_Register() {
+bool Get_SystemUserRegister() {
   return System.User.Register;
+}
+
+void Set_SystemUserOnline(bool Active) {
+  System.User.Online = Active;
+}
+
+bool Get_SystemUserOnline() {
+  return System.User.Online;
 }

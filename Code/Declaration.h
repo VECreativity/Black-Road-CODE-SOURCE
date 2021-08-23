@@ -4,18 +4,19 @@
 #define statement_H_INCLUDED
 
 #include <stdbool.h>
+#include <windows.h>
 
 // Ep0.c
-int ptr(char fileNameAddress[]);
-void directionValueInitialization(unsigned int x, unsigned int y);
-void directionValueUpdate(void);
-void diectionPrintf(void);
-int directionControlCenter(int a, int b);
-void fun();
-int manualAttack();
-int manualAttackSec();
-int operatingCenter(void);
-int game(char numID[2]);
+int az();
+void Init();
+DWORD WINAPI __MapsPut(LPVOID var);
+DWORD WINAPI __MapsUpdate(LPVOID var);
+DWORD WINAPI __SpeedIn(LPVOID var);
+DWORD WINAPI __GetIn(LPVOID var);
+DWORD WINAPI __SetIn(LPVOID var);
+
+
+
 
 // Main.c
 int Menu(int Position, char MenuList[][16], bool Reset);
@@ -30,26 +31,30 @@ inline unsigned short int GetMenuListMin();
 void getHelp(void);
 
 // UserGroup.c
-void SetSystem_User_VarNamePath(char* Message);
-char* GetSystem_User_VarNamePath();
-void SetSystem_User_VarName(char* Message);
-char* GetSystem_User_VarName();
-void SetSystem_Local_File_VarUserListPath(char* Message);
-char* GetSystem_Local_File_VarUserListPath();
-void SetSystem_Local_File_VarMainPath(char* Message);
-char* GetSystem_Local_File_VarMainPath();
-void SetSystem_User_VarAllUserNumber(unsigned short int Number);
-unsigned short int GetSystem_User_VarAllUserNumber();
-char* GetSystem_User_AllUserList_ToString(unsigned short int Index);
-void SetSystem_User_Register(bool Active);
-bool GetSystem_User_Register();
+void Set_SystemUserWindowsUserPath(char* Message);
+char* Get_SystemUserWindowsUserPath();
+void Set_SystemUserName(char* Message);
+char* Get_SystemUserName();
+void Set_SystemUserAllUserNumber(unsigned short int Number);
+unsigned short int Get_SystemUserAllUserNumber();
+void Set_SystemUserRegister(bool Active);
+bool Get_SystemUserRegister();
+char* Get_SystemUserWindowsUserPath();
+void Set_SystemUserOnline(bool Active);
+bool Get_SystemUserOnline();
+
 
 int aaa();
-int Register();
-int Login();
+inline static int __Register();
+inline static int __Login();
+inline static int __ReadLocalFile_UserList();
+inline static int __WriteLocalFile_UserList(char* Message);
+inline static int __InitLocalPath();
+inline static char* __GetUserName();
+inline static bool __IsLocalFileUser();
 
-inline int __ReadLocalFile_UserList();
-inline int __WriteLocalFile_UserList(char* Message);
-inline void __Reset();
+
+inline static int __AddStringToLinkList(char* Message);
+inline static void __LinkUserPath();
 
 #endif

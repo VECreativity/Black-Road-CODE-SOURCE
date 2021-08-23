@@ -10,17 +10,16 @@
 
 int main(void) {
 
-  Rmdust_Reset();
+  //Rmdust_Reset();
 
-  Rmdust_System_Log_SetTitle("Start Core");
-  Rmdust_System_Log_SetTitleAddons("Non");
-  Rmdust_System_Log_SetLableLevel(2);
-  Rmdust_System_Log_SetLogActive(TRUE);
-  Rmdust_System_IO_Error_Log_Write();
 
-  aaa();
+  //az();
 
-  system("pause");
+  //Rmdust_System_Console_Graphic_Animation_Load();
+
+  //aaa();
+
+  //printf("%s",Get_SystemUserWindowsUserPath());
 
   //char arr[][16] = { "Game Start", "Game Passage", "Help", "Back User","Game Exit","\0" };
   //Menu(0,arr,TRUE);

@@ -16,7 +16,7 @@
 #define OR ||
 #define and &&
 #define or ||
-#define Graphic_Animation_Transition_Time 25
+#define Graphic_Animation_Transition_Time 50
 
 static char __Text = '=';
 static char __Space = ' ';
@@ -224,7 +224,7 @@ void Rmdust_System_Console_Graphic_Animation_Load() {
     Sleep(200);
 
     __SetPos(60,20);
-    printf("/");
+    printf("\\");
     Sleep(100);
   }
 }
